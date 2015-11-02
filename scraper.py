@@ -4,32 +4,20 @@ import oauth2 as oauth
 from config import *
 import urllib2
 import os
+import flask
 from os import listdir
 from os.path import isfile, join
 import json
 import sqlalchemy
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Float
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Float, MetaData, Table
 from sqlalchemy.ext.declarative import declarative_base 
 from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy_utils import database_exists
 from flask.ext.sqlalchemy import SQLAlchemy
 from bs4 import BeautifulSoup
 import twitter
 from models import *
 
-Base = declarative_base()
-
-
-engine = create_engine('postgresql://centralbureacracy:centralfiling@localhost/twitdata')
-#Base.metadata.create_all(engine)
-
-#if not engine.dialect.has_table(engine.connect(), "Twitstock"):
-#		Base.metadata.create_all(engine)
-
-if not engine.dialect.has_table(engine.connect(), "RussiaNews"):
-		Base.metadata.create_all(engine)
-Session = sessionmaker(bind=engine)
-
-session=Session()
 
 '''
 connect directly to twitter to scrape accounts
@@ -73,15 +61,11 @@ def soupify(url):
 '''
 get tweets from TWitter for users and add to declarative_base
 '''
-def seed_twitdata():
+def seed_twitdata(session):
 	#screen_name='Schuldensuehner'
-	users=['stockmarketpnt', 'WinStockTraders', 'yurybarmin', 'kengfeed', 'PerchwellHQ', 'ETFDAILYNEWS', 'MarkAmesExiled',
-			'hsilverb', 'CNBC', 'zbswanepoel', 'zerohedge', 'katie_martin_FX', 'KaiPflughaupt', 'intlGR', 'InvestorPlace',
-			'TheStreetAlerts', 'BiiwiiNFTRH', 'TuurDemeester', 'rougek68', 'danielhoeg', 'STOCK_GIRL', 'DouglasLucas', 
-			'mgrenier731', 'SurvivalistBlog', 'sarahlain12', 'KeithMcCullough', 'markbartontv', 'alanchiu', 'WSJ', 
-			'nicolas_veron', 'MarketWatch', 'CNNMoney', 'Slate', 'ForeignPolicy', 'voxdotcom', 'CarnegieCorp', 
-			'guardian', 'TheEconomist', 'ReutersOpinion', 'jonathanchait', 'FT', 'pencadlys', 'AP', 'RussiaInsider',
-			'RT_com', 'SputnikInt']
+	users=['fion_li', 'george_chen', 'Schuldensuehner', 'mcdonaldsarahj', 'glennsolomon', \
+	'careymbeck', 'Wh_biz32', 'scendrowski', 'CPrestifilippo', 'robinsonreview', 'InvestorsLive', \
+	'angusgrigg', 'OptionsHawk', 'ComradeArthur', 'AlbertMylesAM']
 
 	api = twitter.Api(consumer_key=TW_CONSUMER_KEY,
 		 					consumer_secret=TW_CONSUMER_SECRET,
@@ -90,7 +74,7 @@ def seed_twitdata():
 
 	for screen_name in users:
 		
-		statuses = api.GetUserTimeline(screen_name=screen_name)
+		statuses = api.GetUserTimeline(screen_name=screen_name, count=200)
 		for s in statuses:
 			session.add(Twitstock(text=s.text, 
 								created_at=s.created_at,

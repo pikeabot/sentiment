@@ -28,13 +28,13 @@ session=Session()
 
 
 tw_count=session.query(Twitstock).count()
-rn_count=session.query(RussiaNews).count()
+rn_count=session.query(ChinaStockNews).count()
 
 print session.query(Twitstock).filter(Twitstock.text.ilike('%russia%')).first().created_at
-print session.query(RussiaNews).filter(RussiaNews.text.ilike('%russia%')).count()
+print session.query(RussiaNews).filter(ChinaStockNews.text.ilike('%russia%')).count()
 
-s=session.query(Twitstock, RussiaNews)\
-			.filter(Twitstock.screen_name==RussiaNews.screen_name)\
+s=session.query(Twitstock, ChinaStockNews)\
+			.filter(Twitstock.screen_name==ChinaStockNews.screen_name)\
 			.filter(and_(Twitstock.text.ilike('%military%'), Twitstock.text.ilike("%russia%"))).first()
 
 print s
